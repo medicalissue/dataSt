@@ -46,6 +46,8 @@ plt.savefig("./ratio_hist.jpg")
 
 plt.clf()
 
+print('ratio hist 1')
+
 minTime = list()
 maxTime = list()
 avgTime = list()
@@ -63,9 +65,10 @@ for i in range(6, 13):
         start = time.time()
         prefixAverages2(X, n)
         optimized[j] = time.time() - start
-    minTime.append(slow.min() / optimized.min())
-    maxTime.append(slow.max() / optimized.max())
-    avgTime.append(slow.mean() / optimized.mean())
+    minTime.append((slow / optimized).min())
+    maxTime.append((slow / optimized).max())
+    avgTime.append((slow / optimized).mean())
+    print(i)
     
 nSize = [2 ** i for i in range(6, 13)]
 
@@ -80,6 +83,8 @@ plt.legend()
 plt.savefig("./ratio plot.jpg")
 
 plt.clf()
+
+print('ratio plot 1')
 
 #==============1-2==============
 
