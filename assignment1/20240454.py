@@ -156,7 +156,7 @@ def findMissing(A, n):
 
 six = list()
 n = 2 ** 6
-for j in range(1000):
+for _ in range(1000):
     A = list(range(n))
     np.random.shuffle(A)
     A.pop()
@@ -166,7 +166,7 @@ for j in range(1000):
     
 seven = list()
 n = 2 ** 7
-for j in range(1000):
+for _ in range(1000):
     A = list(range(n))
     np.random.shuffle(A)
     A.pop()
@@ -219,5 +219,15 @@ plt.savefig("./ratio plot3.jpg")
 plt.clf()
 
 def countOnes(A, n):
+    loc = n - 1
+    cnt = 0
     for i in range(n):
-        pass
+        while A[i][loc] == 0:
+            if loc == 0:
+                return cnt
+            loc -= 1
+        cnt += loc + 1
+    return cnt
+
+for _ in range(1000):
+    pass
