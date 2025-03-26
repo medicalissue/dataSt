@@ -24,22 +24,22 @@ def prefixAverages2(X, n):
     return A
 
 n = 2 ** 6
-slow = list()
-optimized = list()
-for _ in range(1000):
+slow = np.zeros(1000)
+optimized = np.zeros(1000)
+for i in range(1000):
     X = np.random.uniform(0, 1, n)
     start = time.time()
     prefixAverages1(X, n)
-    slow.append(time.time() - start)
+    slow[i] = time.time() - start
 
     start = time.time()
     prefixAverages2(X, n)
-    optimized.append(time.time() - start)
+    optimized[i] = time.time() - start
 
-plt.hist(slow, color='red', label='slow')
-plt.hist(optimized, color='green', label='optimized')
+plt.hist(slow / optimized, color='red', label='slow / optimized')
+# plt.hist(optimized, color='green', label='optimized')
 plt.legend()
-plt.xscale("log")
+# plt.xscale("log")
 plt.xlabel("Time")
 plt.ylabel("Freq")
 plt.savefig("./ratio_hist.jpg")
@@ -51,15 +51,21 @@ maxTime = list()
 avgTime = list()
 for i in range(6, 13):
     n = 2 ** i
+    slow = np.zeros(1000)
     optimized = np.zeros(1000)
     for j in range(1000):
         X = np.random.uniform(0, 1, n)
+        
+        start = time.time()
+        prefixAverages1(X, n)
+        slow[j] = time.time() - start
+        
         start = time.time()
         prefixAverages2(X, n)
         optimized[j] = time.time() - start
-    minTime.append(optimized.min())
-    maxTime.append(optimized.max())
-    avgTime.append(optimized.mean())
+    minTime.append(slow.min() / optimized.min())
+    maxTime.append(slow.max() / optimized.max())
+    avgTime.append(slow.mean() / optimized.mean())
     
 nSize = [2 ** i for i in range(6, 13)]
 
@@ -125,15 +131,20 @@ maxTime = list()
 avgTime = list()
 for i in range(7, 12):
     n = 2 ** i
+    slow = np.zeros(1000)
     optimized = np.zeros(1000)
     for j in range(1000):
         X = np.random.uniform(0, 1, n)
         start = time.time()
+        movingAverages1(X, n, k)
+        slow[j] = time.time() - start
+        
+        start = time.time()
         movingAverages2(X, n, k)
         optimized[j] = time.time() - start
-    minTime.append(optimized.min())
-    maxTime.append(optimized.max())
-    avgTime.append(optimized.mean())
+    minTime.append(slow.min() / optimized.min())
+    maxTime.append(slow.max() / optimized.max())
+    avgTime.append(slow.mean() / optimized.mean())
     
 nSize = [2 ** i for i in range(7, 12)]
 
@@ -154,7 +165,7 @@ plt.clf()
 def findMissing(A, n):
     return (n * (n - 1) / 2) - sum(A)
 
-six = list()
+six = np.array()
 n = 2 ** 6
 for _ in range(1000):
     A = list(range(n))
@@ -164,7 +175,7 @@ for _ in range(1000):
     findMissing(A, n)
     six.append(time.time() - start)
     
-seven = list()
+seven = np.array()
 n = 2 ** 7
 for _ in range(1000):
     A = list(range(n))
@@ -174,17 +185,17 @@ for _ in range(1000):
     findMissing(A, n)
     seven.append(time.time() - start)
 
-plt.subplot(121)
-plt.hist(six, color='red', label='2**6')
+# plt.subplot(121)
+plt.hist(seven / six, color='red', label='2**7 / 2**6')
 plt.legend()
 plt.xlabel("Time")
 plt.ylabel("Freq")
 
-plt.subplot(122)
-plt.hist(seven, color='green', label='2**7')
-plt.legend()
-plt.xlabel("Time")
-plt.ylabel("Freq")
+# plt.subplot(122)
+# plt.hist(seven, color='green', label='2**7')
+# plt.legend()
+# plt.xlabel("Time")
+# plt.ylabel("Freq")
 
 plt.savefig("./ratio_hist3.jpg")
 plt.clf()
@@ -200,11 +211,11 @@ for i in range(7, 12):
         start = time.time()
         findMissing(X, n)
         find[j] = time.time() - start
-    minTime.append(find.min())
-    maxTime.append(find.max())
-    avgTime.append(find.mean())
+    minTime.append(optimized.min())
+    maxTime.append(optimized.max())
+    avgTime.append(optimized.mean())
     
-nSize = [2 ** i for i in range(7, 12)]
+nSize = [f"2 ** {i} / 2 ** 6" for i in range(7, 12)]
 
 plt.plot(nSize, minTime, marker='o', label='Min Time')
 plt.plot(nSize, maxTime, marker='s', label='Max Time')
@@ -230,21 +241,62 @@ def countOnes(A, n):
     return cnt
 
 def countOnesButSlow(A, n):
-    pass
+    c = 0
+    for i in range(n):
+        j = 0
+        while j < n and A[i][j]:
+            c += 1
+            j += 1
+    return c
 
 n = 2 ** 6
 slow = list()
 optimized = list()
 for _ in range(1000):
-    A = np.zeros(n, n, dtype=int)
+    A = np.zeros((n, n))
     numOfOne = sorted(np.random.randint(0, n + 1, size=n), reverse=True)
     for i in range(0, n):
         A[i, :numOfOne[i]] = 1
     
     start = time.time()
-    movingAverages1(X, n, k)
+    countOnesButSlow(A, n)
     slow.append(time.time() - start)
 
     start = time.time()
     countOnes(A, n)
     optimized.append(time.time() - start)
+    
+plt.hist(slow, color='red', label='slow')
+plt.hist(optimized, color='green', label='optimized')
+plt.legend()
+plt.xscale("log")
+plt.xlabel("Time")
+plt.ylabel("Freq")
+plt.savefig("./ratio_hist4.jpg")
+
+minTime = list()
+maxTime = list()
+avgTime = list()
+for i in range(7, 13):
+    n = 2 ** i
+    find = np.zeros(1000)
+    for j in range(1000):
+        X = np.random.uniform(0, 1, n)
+        start = time.time()
+        countOnes(X, n)
+        find[j] = time.time() - start
+    minTime.append(find.min())
+    maxTime.append(find.max())
+    avgTime.append(find.mean())
+    
+nSize = [2 ** i for i in range(7, 13)]
+
+plt.plot(nSize, minTime, marker='o', label='Min Time')
+plt.plot(nSize, maxTime, marker='s', label='Max Time')
+plt.plot(nSize, avgTime, marker='^', label='Average Time')
+plt.xlabel("n/2^6")
+plt.ylabel("ratio")
+plt.xscale("log", base=2)
+plt.yscale("log")
+plt.legend()
+plt.savefig("./ratio plot3.jpg")
