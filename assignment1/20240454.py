@@ -229,5 +229,22 @@ def countOnes(A, n):
         cnt += loc + 1
     return cnt
 
-for _ in range(1000):
+def countOnesButSlow(A, n):
     pass
+
+n = 2 ** 6
+slow = list()
+optimized = list()
+for _ in range(1000):
+    A = np.zeros(n, n, dtype=int)
+    numOfOne = sorted(np.random.randint(0, n + 1, size=n), reverse=True)
+    for i in range(0, n):
+        A[i, :numOfOne[i]] = 1
+    
+    start = time.time()
+    movingAverages1(X, n, k)
+    slow.append(time.time() - start)
+
+    start = time.time()
+    countOnes(A, n)
+    optimized.append(time.time() - start)
