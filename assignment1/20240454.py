@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 
 np.random.seed(20240454)
-sys.setrecursionlimit(1000000)  # 예시: 재귀 깊이 제한을 높임
+sys.setrecursionlimit(10000000)  # 예시: 재귀 깊이 제한을 높임
 
 
 #==============1-1==============
@@ -360,3 +360,54 @@ print()
 print(f"and gcd1(132425, 103) is {gcd1(132425, 103)}")
 print()
 print(f"and gcd2(132425, 103) is {gcd2(132425, 103)}")
+
+#==============2-2===============
+
+def divide(a, b):
+    if a < b:
+        return (0, a)
+    q, r = divide(a - b, b)
+    return (q + 1, r)
+    
+print(divide(145202, 31))
+# print(divide(13255322, 113))
+
+#==============3-1===============
+
+def spiral(n, m):
+    A = np.zeros((n, m), dtype=int)
+    x, y = 0, 0
+    togo = ((1, 0), (0, 1), (-1, 0), (0, -1))
+    now = 0
+    for i in range(1, n * m + 1):
+        A[y][x] = i
+        nx, ny = x + togo[now][0], y + togo[now][1]
+        if m <= nx or n <= ny or A[ny][nx] != 0:
+            now = (now + 1) % 4
+        x += togo[now][0]
+        y += togo[now][1]
+    return A
+
+print(spiral(50, 50))
+
+#==============3-2===============
+
+n = 10 ** 6
+
+toHist = np.zeros(n)
+for i in range(n):
+    # A = np.zeros((100, 100))
+    howMuch = np.random.randint(5, 11)
+    loc = np.random.choice(range(10000), howMuch, replace=False)
+    # A.flat[loc] = 1
+    nonzeroOffset = np.sum(loc)
+    locOffset = (howMuch * (howMuch + 1)) // 2
+    toHist[i] = nonzeroOffset / locOffset
+
+plt.hist(toHist, color='red', label='offset ratio')
+plt.legend()
+plt.xlabel("Time Ratio")
+plt.ylabel("Freq")
+
+plt.savefig("./sparse hist1.jpg")
+plt.clf()
