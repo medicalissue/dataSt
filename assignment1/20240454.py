@@ -1,10 +1,9 @@
 import numpy as np
 import time
 import matplotlib.pyplot as plt
-import sys
+from tqdm import tqdm
 
 np.random.seed(20240454)
-sys.setrecursionlimit(10000000)  # 예시: 재귀 깊이 제한을 높임
 
 
 #==============1-1==============
@@ -110,8 +109,8 @@ sys.setrecursionlimit(10000000)  # 예시: 재귀 깊이 제한을 높임
 #         A[i] = move / min(i + 1, k)
 #     return A
 
-# n = 2 ** 6
-# k = 2 ** 5
+# n = 2 ** 5
+# k = 2 ** 4
 # slow = np.zeros(1000)
 # optimized = np.zeros(1000)
 # for i in range(1000):
@@ -138,8 +137,8 @@ sys.setrecursionlimit(10000000)  # 예시: 재귀 깊이 제한을 높임
 # minTime = list()
 # maxTime = list()
 # avgTime = list()
-# k = 2 ** 5
-# for i in range(7, 12):
+# k = 2 ** 3
+# for i in range(4, 9):
 #     n = 2 ** i
 #     slow = np.zeros(1000)
 #     optimized = np.zeros(1000)
@@ -157,7 +156,7 @@ sys.setrecursionlimit(10000000)  # 예시: 재귀 깊이 제한을 높임
 #     avgTime.append((slow / optimized).mean())
 #     print(i)
     
-# nSize = [2 ** i for i in range(7, 12)]
+# nSize = [2 ** i for i in range(4, 9)]
 
 # plt.plot(nSize, minTime, marker='o', label='Min Time')
 # plt.plot(nSize, maxTime, marker='s', label='Max Time')
@@ -210,10 +209,20 @@ sys.setrecursionlimit(10000000)  # 예시: 재귀 깊이 제한을 높임
 
 # print("Ratio Hist 3")
 
+# three = np.zeros(1000)
+# n = 2 ** 3
+# for i in range(1000):
+#     A = list(range(n))
+#     np.random.shuffle(A)
+#     A.pop()
+#     start = time.perf_counter()
+#     findMissing(A, n)
+#     seven[i] = time.perf_counter() - start
+
 # minTime = list()
 # maxTime = list()
 # avgTime = list()
-# for i in range(7, 12):
+# for i in range(4, 9):
 #     n = 2 ** i
 #     find = np.zeros(1000)
 #     for j in range(1000):
@@ -221,12 +230,12 @@ sys.setrecursionlimit(10000000)  # 예시: 재귀 깊이 제한을 높임
 #         start = time.perf_counter()
 #         findMissing(X, n)
 #         find[j] = time.perf_counter() - start
-#     minTime.append((find / six).min())
-#     maxTime.append((find / six).max())
-#     avgTime.append((find / six).mean())
+#     minTime.append((find / three).min())
+#     maxTime.append((find / three).max())
+#     avgTime.append((find / three).mean())
 #     print(i)
     
-# nSize = [2 ** i / 2 ** 6 for i in range(7, 12)]
+# nSize = [2 ** i / 2 ** 3 for i in range(4, 9)]
 
 # plt.plot(nSize, minTime, marker='o', label='Min Time')
 # plt.plot(nSize, maxTime, marker='s', label='Max Time')
@@ -294,7 +303,7 @@ sys.setrecursionlimit(10000000)  # 예시: 재귀 깊이 제한을 높임
 # minTime = list()
 # maxTime = list()
 # avgTime = list()
-# for i in range(7, 13):
+# for i in range(4, 9):
 #     n = 2 ** i
 #     slow = np.zeros(1000)
 #     optimized = np.zeros(1000)
@@ -317,7 +326,7 @@ sys.setrecursionlimit(10000000)  # 예시: 재귀 깊이 제한을 높임
     
 #     print(i)
     
-# nSize = [2 ** i for i in range(7, 13)]
+# nSize = [2 ** i for i in range(4, 9)]
 
 # plt.plot(nSize, minTime, marker='o', label='Min Time')
 # plt.plot(nSize, maxTime, marker='s', label='Max Time')
@@ -401,9 +410,8 @@ print(spiral(10, 4))
 #==============3-2===============
 
 n = 10 ** 6
-
 toHist = np.zeros(n)
-for i in range(n):
+for i in tqdm(range(n)):
     # A = np.zeros((100, 100))
     howMuch = np.random.randint(5, 11)
     loc = np.random.choice(range(10000), howMuch, replace=False)
@@ -418,4 +426,23 @@ plt.xlabel("Time Ratio")
 plt.ylabel("Freq")
 
 plt.savefig("./sparse hist1.jpg")
+plt.clf()
+
+n = 10 ** 6
+toHist = np.zeros(n)
+for i in tqdm(range(n)):
+    # A = np.zeros((100, 100))
+    howMuch = np.random.randint(10, 21)
+    loc = np.random.choice(range(10000), howMuch, replace=False)
+    # A.flat[loc] = 1
+    nonzeroOffset = np.sum(loc)
+    locOffset = ((howMuch * 2) * (howMuch * 2 - 1)) // 2
+    toHist[i] = nonzeroOffset / locOffset
+
+plt.hist(toHist, color='red', label='offset ratio')
+plt.legend()
+plt.xlabel("Time Ratio")
+plt.ylabel("Freq")
+
+plt.savefig("./sparse hist2.jpg")
 plt.clf()
