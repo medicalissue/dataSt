@@ -1,13 +1,10 @@
 import numpy as np
 import time
 import matplotlib.pyplot as plt
-from tqdm import tqdm
 
 np.random.seed(20240454)
 
-
 #==============1-1==============
-
 def prefixAverages1(X, n):
     A = np.zeros(n)
     for i in range(n):
@@ -38,20 +35,20 @@ for i in range(1000):
     prefixAverages2(X, n)
     optimized[i] = time.perf_counter() - start
 
-plt.hist(slow / optimized, color='red', label='slow / optimized')
+plt.hist(slow / optimized, color='red', label='slow / optimized', bins=100)
 plt.legend()
-plt.xlabel("Time")
+plt.xlabel("Time Ratio")
 plt.ylabel("Freq")
+plt.xscale("log", base=2)
+# plt.yscale("log")
 plt.savefig("./ratio_hist.jpg")
 
 plt.clf()
 
-print('ratio hist 1')
-
 minTime = list()
 maxTime = list()
 avgTime = list()
-for i in range(6, 13):
+for i in range(4, 9):
     n = 2 ** i
     slow = np.zeros(1000)
     optimized = np.zeros(1000)
@@ -68,9 +65,8 @@ for i in range(6, 13):
     minTime.append((slow / optimized).min())
     maxTime.append((slow / optimized).max())
     avgTime.append((slow / optimized).mean())
-    print(i)
     
-nSize = [2 ** i for i in range(6, 13)]
+nSize = [2 ** i for i in range(4, 9)]
 
 plt.plot(nSize, minTime, marker='o', label='Min Time')
 plt.plot(nSize, maxTime, marker='s', label='Max Time')
@@ -84,10 +80,7 @@ plt.savefig("./ratio plot.jpg")
 
 plt.clf()
 
-print('ratio plot 1')
-
 #==============1-2==============
-
 def movingAverages1(X, n, k):
     A = np.zeros(n)
     for i in range(n):
@@ -121,15 +114,15 @@ for i in range(1000):
     movingAverages2(X, n, k)
     optimized[i] = time.perf_counter() - start
 
-plt.hist(slow / optimized, color='red', label='slow / optimized')
+plt.hist(slow / optimized, color='red', label='slow / optimized', bins=100)
 plt.legend()
 plt.xlabel("Time Ratio")
 plt.ylabel("Freq")
+plt.xscale("log", base=2)
+# plt.yscale("log")
 plt.savefig("./ratio_hist2.jpg")
 
 plt.clf()
-
-print("ratio hist 2")
 
 minTime = list()
 maxTime = list()
@@ -151,7 +144,6 @@ for i in range(4, 9):
     minTime.append((slow / optimized).min())
     maxTime.append((slow / optimized).max())
     avgTime.append((slow / optimized).mean())
-    print(i)
     
 nSize = [2 ** i for i in range(4, 9)]
 
@@ -167,10 +159,7 @@ plt.savefig("./ratio plot2.jpg")
 
 plt.clf()
 
-print("ratio plot 2")
-
-#==============1-3===============
-
+#==============1-3==============
 def findMissing(A, n):
     return (n * (n - 1) // 2) - sum(A)
 
@@ -194,17 +183,15 @@ for i in range(1000):
     findMissing(A, n)
     seven[i] = time.perf_counter() - start
 
-
-
-plt.hist(seven / six, color='red', label='2**7 / 2**6')
+plt.hist(seven / six, color='red', label='2^7/2^6', bins=100)
 plt.legend()
 plt.xlabel("Time Ratio")
 plt.ylabel("Freq")
+plt.xscale("log", base=2)
+# plt.yscale("log")
 
 plt.savefig("./ratio_hist3.jpg")
 plt.clf()
-
-print("Ratio Hist 3")
 
 three = np.zeros(1000)
 n = 2 ** 3
@@ -214,7 +201,7 @@ for i in range(1000):
     A.pop()
     start = time.perf_counter()
     findMissing(A, n)
-    seven[i] = time.perf_counter() - start
+    three[i] = time.perf_counter() - start
 
 minTime = list()
 maxTime = list()
@@ -230,14 +217,13 @@ for i in range(4, 9):
     minTime.append((find / three).min())
     maxTime.append((find / three).max())
     avgTime.append((find / three).mean())
-    print(i)
     
 nSize = [2 ** i / 2 ** 3 for i in range(4, 9)]
 
 plt.plot(nSize, minTime, marker='o', label='Min Time')
 plt.plot(nSize, maxTime, marker='s', label='Max Time')
 plt.plot(nSize, avgTime, marker='^', label='Average Time')
-plt.xlabel("2^n/2^6")
+plt.xlabel("2^n/2^3")
 plt.ylabel("ratio")
 plt.xscale("log", base=2)
 plt.yscale("log")
@@ -246,10 +232,7 @@ plt.savefig("./ratio plot3.jpg")
 
 plt.clf()
 
-print("Ratio plot 3")
-
-#==============1-4===============
-
+#==============1-4==============
 def countOnes(A, n):
     loc = n - 1
     cnt = 0
@@ -287,15 +270,16 @@ for i in range(1000):
     countOnes(A, n)
     optimized[i] = time.perf_counter() - start
     
-plt.hist(slow / optimized, color='red', label='countOnesButSlow / countOnes')
+plt.hist(slow / optimized, color='red', label='countOnesButSlow / countOnes', bins=100)
 plt.legend()
 plt.xlabel("Time Ratio")
 plt.ylabel("Freq")
+plt.xscale("log", base=2)
+# plt.yscale("log")
+
 plt.savefig("./ratio_hist4.jpg")
 
 plt.clf()
-
-print("Ratio hist 4")
 
 minTime = list()
 maxTime = list()
@@ -321,8 +305,6 @@ for i in range(4, 9):
     maxTime.append((slow / optimized).max())
     avgTime.append((slow / optimized).mean())
     
-    print(i)
-    
 nSize = [2 ** i for i in range(4, 9)]
 
 plt.plot(nSize, minTime, marker='o', label='Min Time')
@@ -337,22 +319,20 @@ plt.savefig("./ratio plot4.jpg")
 
 plt.clf()
 
-print("ratio plot 4")
-
 #==============2-1===============
-
 def gcd1(a, b):
-    print(f"computing gcd1({a}, {b}), ", end='')
-    
     if b == 0:
         return a
+    
+    print(f"computing gcd1({a}, {b}), ", end='')
     
     return gcd1(b, a % b)
 
 def gcd2(a, b):
-    print(f"computing gcd2({a}, {b}), ", end='')
     if a == b:
         return a
+    
+    print(f"computing gcd2({a}, {b}), ", end='')
     
     if a > b:
         return gcd2(a - b, b)
@@ -369,7 +349,6 @@ print(f"and gcd2(225, 13) is {gcd2(225, 13)}")
 print()
 
 #==============2-2===============
-
 def divide(a, b):
     if a < b:
         return (0, a)
@@ -387,7 +366,6 @@ print(f"and divide(1325, 113) is quotient: {q}, remainder: {r}")
 print()
 
 #==============3-1===============
-
 def spiral(n, m):
     A = np.zeros((n, m), dtype=int)
     x, y = 0, 0
@@ -405,41 +383,44 @@ def spiral(n, m):
 print(spiral(10, 4))
 
 #==============3-2===============
-
 n = 10 ** 6
 toHist = np.zeros(n)
-for i in tqdm(range(n)):
-    # A = np.zeros((100, 100))
-    howMuch = np.random.randint(5, 11)
-    loc = np.random.choice(range(10000), howMuch, replace=False)
-    # A.flat[loc] = 1
+for i in range(n):
+    A = np.zeros((10, 10))
+    howMuch = np.random.randint(1, 6)
+    loc = np.random.choice(range(100), howMuch, replace=False)
+    A.flat[loc] = 1
     nonzeroOffset = np.sum(loc)
     locOffset = ((howMuch * 2) * (howMuch * 2 - 1)) // 2
     toHist[i] = nonzeroOffset / locOffset
 
-plt.hist(toHist, color='red', label='offset ratio')
+plt.hist(toHist, color='red', label='offset ratio', bins=100)
 plt.legend()
-plt.xlabel("Time Ratio")
+plt.xlabel("Offset Ratio")
 plt.ylabel("Freq")
+plt.xscale("log", base=2)
 
 plt.savefig("./sparse hist1.jpg")
+
 plt.clf()
 
 n = 10 ** 6
 toHist = np.zeros(n)
-for i in tqdm(range(n)):
-    # A = np.zeros((100, 100))
+for i in range(n):
+    A = np.zeros((10, 10))
     howMuch = np.random.randint(10, 21)
-    loc = np.random.choice(range(10000), howMuch, replace=False)
-    # A.flat[loc] = 1
+    loc = np.random.choice(range(100), howMuch, replace=False)
+    A.flat[loc] = 1
     nonzeroOffset = np.sum(loc)
     locOffset = ((howMuch * 2) * (howMuch * 2 - 1)) // 2
     toHist[i] = nonzeroOffset / locOffset
 
-plt.hist(toHist, color='red', label='offset ratio')
+plt.hist(toHist, color='red', label='offset ratio', bins=100)
 plt.legend()
 plt.xlabel("Offset Ratio")
 plt.ylabel("Freq")
+# plt.xscale("log", base=2)
 
 plt.savefig("./sparse hist2.jpg")
+
 plt.clf()
