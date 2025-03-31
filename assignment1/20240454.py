@@ -353,24 +353,32 @@ def gcd2(a, b):
     else:
         return gcd2(a, b - a)
 
-print(f"and gcd1(149302, 320333) is {gcd1(149302, 320333)}")
+print(f"and gcd1(493, 33) is {gcd1(493, 33)}")
 print()
-print(f"and gcd2(149302, 320333) is {gcd2(149302, 320333)}")
+print(f"and gcd2(493, 33) is {gcd2(493, 33)}")
 print()
-print(f"and gcd1(132425, 103) is {gcd1(132425, 103)}")
+print(f"and gcd1(225, 13) is {gcd1(225, 13)}")
 print()
-print(f"and gcd2(132425, 103) is {gcd2(132425, 103)}")
+print(f"and gcd2(225, 13) is {gcd2(225, 13)}")
+print()
 
 #==============2-2===============
 
 def divide(a, b):
     if a < b:
         return (0, a)
+    
+    print(f"computing divide({a}, {b}), ", end='')
+    
     q, r = divide(a - b, b)
     return (q + 1, r)
-    
-print(divide(145202, 31))
-# print(divide(13255322, 113))
+
+q, r = divide(413, 31)
+print(f"and divide(413, 31) is quotient: {q}, remainder: {r}")
+print()
+q, r = divide(1325, 113)
+print(f"and divide(1325, 113) is quotient: {q}, remainder: {r}")
+print()
 
 #==============3-1===============
 
@@ -388,7 +396,7 @@ def spiral(n, m):
         y += togo[now][1]
     return A
 
-print(spiral(50, 50))
+print(spiral(10, 4))
 
 #==============3-2===============
 
@@ -401,7 +409,7 @@ for i in range(n):
     loc = np.random.choice(range(10000), howMuch, replace=False)
     # A.flat[loc] = 1
     nonzeroOffset = np.sum(loc)
-    locOffset = (howMuch * (howMuch + 1)) // 2
+    locOffset = ((howMuch * 2) * (howMuch * 2 - 1)) // 2
     toHist[i] = nonzeroOffset / locOffset
 
 plt.hist(toHist, color='red', label='offset ratio')
