@@ -29,7 +29,8 @@ for i in range(1000):
     X = np.random.uniform(0, 1, n)
     start = time.perf_counter()
     prefixAverages1(X, n)
-    slow[i] = time.perf_counter() - start
+    slow[i] = time.perf_count
+    er() - start
 
     start = time.perf_counter()
     prefixAverages2(X, n)
