@@ -27,7 +27,7 @@ for _ in range(1000):
     AT.append(time.perf_counter() - start)
     
 plt.figure()
-plt.hist(LT, bins=500)
+plt.hist(LT)
 plt.xlabel('Time')
 plt.ylabel('Freq')
 plt.xscale("log", base=2)
@@ -36,7 +36,7 @@ plt.savefig('./histListDel')
 plt.clf()
 
 plt.figure()
-plt.hist(AT, bins=500)
+plt.hist(AT)
 plt.xlabel('Time')
 plt.ylabel('Freq')
 plt.xscale("log", base=2)
@@ -117,10 +117,10 @@ for i in range(1000):
     pea[i] = time.perf_counter() - start
     
 plt.figure()
-plt.hist(pel / pea, bins=500)
+plt.hist(pel / pea)
 plt.xlabel('Time')
 plt.ylabel('Freq')
-plt.xscale("log", base=2)
-plt.yscale("log")
+# plt.xscale("log", base=2)
+# plt.yscale("log")
 plt.savefig('./HistPolyEval')
 plt.clf()
