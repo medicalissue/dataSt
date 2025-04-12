@@ -338,7 +338,7 @@ def generateOrderedSet(n):
     return np.sort(np.random.randint(0, 101, n))
 
 def Member(A, e):
-    if not A:
+    if len(A) == 0:
         return False
     p = 0
     while True:
@@ -354,7 +354,7 @@ def Member(A, e):
             return True
 
 def Subset(A, B):
-    if not A:
+    if len(A) == 0:
         return True
     p = 0
     while True:
