@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-import random
 
 np.random.seed(20240454)
 
