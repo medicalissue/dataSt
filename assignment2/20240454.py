@@ -127,8 +127,6 @@ plt.legend()
 plt.savefig("./ListVsArrayCon")
 plt.close()
 
-# 2
-
 # 2-1-a
 def PolyList(f):
     deg = len(f) - 1
@@ -146,7 +144,9 @@ def PolyEvalList(f, c):
     return ret
 
 def PolyEvalArray(f, c):
-    return np.polyval(f, c)
+    deg = len(f) - 1
+    exp = np.arange(deg, -1, -1)
+    return np.dot(f, np.power(c, exp))
 
 fx = [1] + [0]*48 + [-1, 0]
 ratios = np.zeros(1000)
@@ -211,7 +211,12 @@ def PolyProdList(f, g):
     return ret
 
 def PolyProdArray(f, g):
-    return np.convolve(f, g)
+    f = np.array(f)
+    g = np.array(g)
+    ret = np.zeros(len(f) + len(g) - 1)
+    for i, fc in enumerate(f):
+        ret[i:i + len(g)] += fc * g
+    return ret
 
 fx = [1, -1, 0, -1, 1]
 gx = [3, 0, 0, -4, 2, 0]
@@ -294,18 +299,19 @@ plt.close()
 
 # 2-2-a
 def SharingList(A):
+    A = np.array(A)
     return [list(map(int, np.where(A[:, i])[0])) for i in range(A.shape[1])]
 
 A = np.random.binomial(1, 0.2, size=(20, 10))
 print(f"SharingList(A) = {SharingList(A)}")
 
 # 2-2-b
-def FindPopularList(A_list):
+def FindPopularList(A):
+    Ash = SharingList(A)
     freq = {}
-    for sublist in A_list:
-        for item in sublist:
-            freq[item] = freq.get(item, 0) + 1
-
+    for group in Ash:
+        for elem in group:
+            freq[elem] = freq.get(elem, 0) + 1
     return max(freq, key=freq.get)
 
 
@@ -314,15 +320,14 @@ def FindPopularArray(A):
 
 ratios = np.zeros(1000)
 for i in range(1000):
-    A_temp = np.random.binomial(1, 0.2, size=(20, 10))
-    A_list_temp = SharingList(A_temp)
+    A = np.random.binomial(1, 0.2, size=(20, 10))
     
     start = time.perf_counter()
-    FindPopularList(A_list_temp)
+    FindPopularList(A)
     t1 = time.perf_counter() - start
     
     start = time.perf_counter()
-    FindPopularArray(A_temp)
+    FindPopularArray(A)
     t2 = time.perf_counter() - start
     
     ratios[i] = t1 / t2
@@ -333,40 +338,38 @@ plt.savefig("./HistSharing")
 plt.close()
 
 # 3-1-a
-def generateOrderedSet(n):
-    return np.sort(np.random.randint(0, 101, n))
 
 def Member(A, e):
     if len(A) == 0:
         return False
+    
     p = 0
-    while True:
+    while p < len(A):
         a = A[p]
         if a < e:
-            if p == len(A) - 1:
-                return False
-            else:
-                p += 1
+            p += 1
         elif a > e:
             return False
         else:
             return True
+        
+    return False
 
 def Subset(A, B):
     if len(A) == 0:
         return True
     p = 0
-    while True:
-        if Member(B, A[p]):
-            if p == len(A) - 1:
-                return True
-            else:
-                p += 1
-        else:
+    
+    while p < len(A):
+        if not Member(B, A[p]):
             return False
+        p += 1
+        
+    return True
 
 def SubsetFast(A, B):
-    i = j = 0
+    i = 0
+    j = 0
     while i < len(A) and j < len(B):
         if A[i] < B[j]:
             return False
@@ -375,6 +378,7 @@ def SubsetFast(A, B):
         else:
             i += 1
             j += 1
+            
     return i == len(A)
 
 sizes = [10, 30, 50, 70, 90]
@@ -382,12 +386,12 @@ ratios = []
 for n in sizes:
     temp = []
     for _ in range(1000):
-        B_set = generateOrderedSet(n)
+        Bset = np.sort(np.random.randint(0, 101, n))
         start = time.perf_counter()
-        Subset([0, 9], B_set)
+        Subset([0, 9], Bset)
         t1 = time.perf_counter() - start
         start = time.perf_counter()
-        SubsetFast([0, 9], B_set)
+        SubsetFast([0, 9], Bset)
         t2 = time.perf_counter() - start
         temp.append(t1 / t2)
     temp = np.array(temp)
@@ -403,7 +407,7 @@ plt.savefig("./Subset")
 plt.close()
 
 # 3-1-b
-A_union = [0, 1, 4, 5, 8, 9, 10]
+aUnion = [0, 1, 4, 5, 8, 9, 10]
 
 def UnionNon(A, B):
     i, j = 0, 0
@@ -428,30 +432,38 @@ def UnionNon(A, B):
     return ret
 
 def Union(A, B):
-    for b in B:
-        if b not in A:
-            A.append(b)
-    return sorted(A)
+    if len(A) == 0 and len(B) == 0:
+        return []
+    if len(A) == 0:
+        return B.copy()
+    if len(B) == 0:
+        return A.copy()
+    if A[0] < B[0]:
+        return [A[0]] + Union(A[1:], B)
+    elif A[0] > B[0]:
+        return [B[0]] + Union(A, B[1:])
+    else:
+        return [A[0]] + Union(A[1:], B[1:])
 
-ratios = []
-for n in sizes:
-    temp = []
+ratioList = []
+for nVal in sizes:
+    tempArray = []
     for _ in range(1000):
-        B_union = generateOrderedSet(n)
-        start = time.perf_counter()
-        UnionNon(A_union, B_union)
-        t1 = time.perf_counter() - start
-        A_copy = A_union.copy()
-        start = time.perf_counter()
-        Union(A_copy, B_union)
-        t2 = time.perf_counter() - start
-        temp.append(t1 / t2)
-    temp = np.array(temp)
-    ratios.append([temp.min(), temp.mean(), temp.max()])
-ratios = np.array(ratios)
-plt.plot(sizes, ratios[:,0], label="min")
-plt.plot(sizes, ratios[:,1], label="avg")
-plt.plot(sizes, ratios[:,2], label="max")
+        bUnion = np.sort(np.random.randint(0, 101, nVal))
+        startTime = time.perf_counter()
+        UnionNon(aUnion, bUnion)
+        t1 = time.perf_counter() - startTime
+        aCopy = aUnion.copy()
+        startTime = time.perf_counter()
+        Union(aCopy, bUnion)
+        t2 = time.perf_counter() - startTime
+        tempArray.append(t1 / t2)
+    tempArray = np.array(tempArray)
+    ratioList.append([tempArray.min(), tempArray.mean(), tempArray.max()])
+ratioList = np.array(ratioList)
+plt.plot(sizes, ratioList[:, 0], label="min")
+plt.plot(sizes, ratioList[:, 1], label="avg")
+plt.plot(sizes, ratioList[:, 2], label="max")
 plt.xlabel("n")
 plt.ylabel("Ratio")
 plt.legend()
@@ -474,27 +486,34 @@ def IntersectNon(A, B):
     return ret
 
 def Intersect(A, B):
-    return [a for a in A if a in B]
+    if len(A) == 0 or len(B) == 0:
+        return []
+    if A[0] < B[0]:
+        return Intersect(A[1:], B)
+    elif A[0] > B[0]:
+        return Intersect(A, B[1:])
+    else:
+        return [A[0]] + Intersect(A[1:], B[1:])
 
-ratios = []
-for n in sizes:
-    temp = []
+ratioList = []
+for nVal in sizes:
+    tempArray = []
     for _ in range(1000):
-        B_intersect = generateOrderedSet(n)
-        start = time.perf_counter()
-        IntersectNon(A_union, B_intersect)
-        t1 = time.perf_counter() - start
-        A_copy = A_union.copy()
-        start = time.perf_counter()
-        Intersect(A_copy, B_intersect)
-        t2 = time.perf_counter() - start
-        temp.append(t1 / t2)
-    temp = np.array(temp)
-    ratios.append([temp.min(), temp.mean(), temp.max()])
-ratios = np.array(ratios)
-plt.plot(sizes, ratios[:,0], label="min")
-plt.plot(sizes, ratios[:,1], label="avg")
-plt.plot(sizes, ratios[:,2], label="max")
+        bIntersect = np.sort(np.random.randint(0, 101, nVal))
+        startTime = time.perf_counter()
+        IntersectNon(aUnion, bIntersect)
+        t1 = time.perf_counter() - startTime
+        aCopy = aUnion.copy()
+        startTime = time.perf_counter()
+        Intersect(aCopy, bIntersect)
+        t2 = time.perf_counter() - startTime
+        tempArray.append(t1 / t2)
+    tempArray = np.array(tempArray)
+    ratioList.append([tempArray.min(), tempArray.mean(), tempArray.max()])
+ratioList = np.array(ratioList)
+plt.plot(sizes, ratioList[:, 0], label="min")
+plt.plot(sizes, ratioList[:, 1], label="avg")
+plt.plot(sizes, ratioList[:, 2], label="max")
 plt.xlabel("n")
 plt.ylabel("Ratio")
 plt.legend()
