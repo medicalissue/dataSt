@@ -17,18 +17,19 @@ print(Lb[0])
 def listDeletionTime(n):
     times = np.zeros(1000)
     for i in range(1000):
-        L = list(range(n))
+        li = list(range(n))
         start = time.perf_counter()
-        L.pop(0)
+        while li:
+            li.pop()
         times[i] = time.perf_counter() - start
     return times
 
 def arrayDeletionTime(n):
     times = np.zeros(1000)
     for i in range(1000):
-        A = np.arange(n)
+        arr = np.arange(n)
         start = time.perf_counter()
-        np.delete(A, 0)
+        arr = np.delete(arr, np.s_[:])
         times[i] = time.perf_counter() - start
     return times
 
