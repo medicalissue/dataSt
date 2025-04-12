@@ -2,10 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import random
-from bisect import bisect_left
 
 np.random.seed(20240454)
-
 
 # 1-1
 def assign(La):
@@ -57,16 +55,16 @@ plt.savefig("./histArrayDel")
 plt.close()
 
 ns = [100, 300, 500, 700, 900]
-deletion_ratios = []
+ratios = []
 for n in ns:
     listT = listDeletionTime(n)
     arrayT = arrayDeletionTime(n)
     ratio = listT / arrayT
-    deletion_ratios.append([ratio.min(), ratio.mean(), ratio.max()])
-deletion_ratios = np.array(deletion_ratios)
-plt.plot(ns, deletion_ratios[:,0], label="min")
-plt.plot(ns, deletion_ratios[:,1], label="avg")
-plt.plot(ns, deletion_ratios[:,2], label="max")
+    ratios.append([ratio.min(), ratio.mean(), ratio.max()])
+ratios = np.array(ratios)
+plt.plot(ns, ratios[:,0], label="min")
+plt.plot(ns, ratios[:,1], label="avg")
+plt.plot(ns, ratios[:,2], label="max")
 plt.xlabel("n")
 plt.ylabel("Ratio")
 plt.legend()
@@ -114,16 +112,16 @@ plt.yscale("log")
 plt.savefig("./histArrayCon")
 plt.close()
 
-concatenation_ratios = []
+ratios = []
 for n in ns:
     listT = listConcatTime(n)
     arrayT = arrayConcatTime(n)
     ratio = listT / arrayT
-    concatenation_ratios.append([ratio.min(), ratio.mean(), ratio.max()])
-concatenation_ratios = np.array(concatenation_ratios)
-plt.plot(ns, concatenation_ratios[:,0], label="min")
-plt.plot(ns, concatenation_ratios[:,1], label="avg")
-plt.plot(ns, concatenation_ratios[:,2], label="max")
+    ratios.append([ratio.min(), ratio.mean(), ratio.max()])
+ratios = np.array(ratios)
+plt.plot(ns, ratios[:,0], label="min")
+plt.plot(ns, ratios[:,1], label="avg")
+plt.plot(ns, ratios[:,2], label="max")
 plt.xlabel("n")
 plt.ylabel("Ratio")
 plt.legend()
@@ -138,7 +136,7 @@ def PolyList(f):
     return [[deg - i, c] for i, c in enumerate(f) if c != 0]
 
 g = [3, 0, 0, 0, 0, 0, 0, 2, 0]
-print(f"When g(x)=3x^8+2x, PolyList(g) = {PolyList(g)}")
+print(f"When g(x) = 3x ^ 8 + 2x, PolyList(g) = {PolyList(g)}")
 
 # 2-1-b
 def PolyEvalList(f, c):
@@ -152,19 +150,19 @@ def PolyEvalArray(f, c):
     return np.polyval(f, c)
 
 fx = [1] + [0]*48 + [-1, 0]
-ratio = np.zeros(1000)
+ratios = np.zeros(1000)
 for i in range(1000):
     start = time.perf_counter()
     PolyEvalList(fx, 0.5)
     t1 = time.perf_counter() - start
-    
+
     start = time.perf_counter()
     PolyEvalArray(fx, 0.5)
     t2 = time.perf_counter() - start
-    
-    ratio[i] = t1 / t2
 
-plt.hist(ratio, bins=100)
+    ratios[i] = t1 / t2
+
+plt.hist(ratios, bins=100)
 plt.xlabel("Ratio")
 plt.ylabel("Freq")
 plt.savefig("./HistPolyEval")
@@ -176,7 +174,6 @@ def PolyAddList(f, g):
         f = [0] * (len(g) - len(f)) + f
     else:
         g = [0] * (len(f) - len(g)) + g
-    
     return [a + b for a, b in zip(f, g)]
 
 def PolyAddArray(f, g):
@@ -184,24 +181,23 @@ def PolyAddArray(f, g):
         f = np.pad(f, (len(g)-len(f), 0))
     else:
         g = np.pad(g, (len(f)-len(g), 0))
-    
     return f + g
 
 fx = [1] + [0]*28 + [-1, 1]
 gx = [3] + [0]*5 + [2, 0]
-ratio = np.zeros(1000)
+ratios = np.zeros(1000)
 for i in range(1000):
     start = time.perf_counter()
     PolyAddList(fx, gx)
     t1 = time.perf_counter() - start
-    
+
     start = time.perf_counter()
     PolyAddArray(np.array(fx), np.array(gx))
     t2 = time.perf_counter() - start
-    
-    ratio[i] = t1 / t2
 
-plt.hist(ratio)
+    ratios[i] = t1 / t2
+
+plt.hist(ratios, bins=100)
 plt.xlabel("Ratio")
 plt.ylabel("Freq")
 plt.savefig("./HistPolyAdd")
@@ -214,23 +210,24 @@ def PolyProdList(f, g):
         for j in range(len(g)):
             ret[i + j] += f[i] * g[j]
     return ret
+
 def PolyProdArray(f, g):
     return np.convolve(f, g)
 
 fx = [1, -1, 0, -1, 1]
 gx = [3, 0, 0, -4, 2, 0]
-ratio = np.zeros(1000)
+ratios = np.zeros(1000)
 for i in range(1000):
     start = time.perf_counter()
     PolyProdList(fx, gx)
     t1 = time.perf_counter() - start
-    
+
     start = time.perf_counter()
     PolyProdArray(np.array(fx), np.array(gx))
     t2 = time.perf_counter() - start
-    ratio[i] = t1 / t2
-    
-plt.hist(ratio, bins=100)
+    ratios[i] = t1 / t2
+
+plt.hist(ratios, bins=100)
 plt.xlabel("Ratio")
 plt.ylabel("Freq")
 plt.savefig("./HistPolyProd")
@@ -250,19 +247,19 @@ def PolyIntArray(f, c):
 
 fx = [1, -1, -1, 0]
 c = 5
-ratio = np.zeros(1000)
+ratios = np.zeros(1000)
 for i in range(1000):
     start = time.perf_counter()
     PolyIntList(fx, c)
     t1 = time.perf_counter() - start
-    
+
     start = time.perf_counter()
     PolyIntArray(fx, c)
     t2 = time.perf_counter() - start
-    
-    ratio[i] = t1 / t2
-    
-plt.hist(ratio, bins=100)
+
+    ratios[i] = t1 / t2
+
+plt.hist(ratios, bins=100)
 plt.xlabel("Ratio")
 plt.ylabel("Freq")
 plt.savefig("./HistPolyInt")
@@ -279,18 +276,18 @@ def PolyDiffArray(f):
     return f[:-1] * deg
 
 fx = [4] + [0]*2 + [2, 6] + [0]*1 + [-1] + [0]*3 + [-1]
-ratio = np.zeros(1000)
+ratios = np.zeros(1000)
 for i in range(1000):
     start = time.perf_counter()
     PolyDiffList(fx)
     t1 = time.perf_counter() - start
-    
+
     start = time.perf_counter()
     PolyDiffArray(np.array(fx))
     t2 = time.perf_counter() - start
-    
-    ratio[i] = t1 / t2
-plt.hist(ratio, bins=100)
+
+    ratios[i] = t1 / t2
+plt.hist(ratios, bins=100)
 plt.xlabel("Ratio")
 plt.ylabel("Freq")
 plt.savefig("./HistPolyDiff")
@@ -303,7 +300,6 @@ def SharingList(A):
 A = np.random.binomial(1, 0.2, size=(20, 10))
 print(f"SharingList(A) = {SharingList(A)}")
 
-
 # 2-2-b
 def FindPopularList(A_list):
     from collections import Counter
@@ -313,7 +309,7 @@ def FindPopularList(A_list):
 def FindPopularArray(A):
     return int(np.argmax(np.sum(A, axis=1)))
 
-ratios_sharing = np.zeros(1000)
+ratios = np.zeros(1000)
 for i in range(1000):
     A_temp = np.random.binomial(1, 0.2, size=(20, 10))
     A_list_temp = SharingList(A_temp)
@@ -323,8 +319,8 @@ for i in range(1000):
     start = time.perf_counter()
     FindPopularArray(A_temp)
     t2 = time.perf_counter() - start
-    ratios_sharing[i] = t1/t2 if t2 != 0 else 0
-plt.hist(ratios_sharing, bins=100)
+    ratios[i] = t1 / t2 if t2 != 0 else 0
+plt.hist(ratios, bins=100)
 plt.xlabel("Ratio")
 plt.ylabel("Freq")
 plt.savefig("./HistSharing")
@@ -343,13 +339,13 @@ def member(A, e):
     return False
 
 def subset(A, B):
-    return all(member(B, a) for a in A)
+    return all(a in B for a in A)
 
 def subsetFast(A, B):
-    return all(B[bisect_left(B, a)] == a if bisect_left(B, a) < len(B) else False for a in A)
+    return all(a in B for a in A)
 
 sizes = [10, 30, 50, 70, 90]
-subset_ratios = []
+ratios = []
 for n in sizes:
     temp = []
     for _ in range(1000):
@@ -362,17 +358,16 @@ for n in sizes:
         t2 = time.perf_counter() - start
         temp.append(t1/t2 if t2 != 0 else 0)
     temp = np.array(temp)
-    subset_ratios.append([temp.min(), temp.mean(), temp.max()])
-subset_ratios = np.array(subset_ratios)
-plt.plot(sizes, subset_ratios[:,0], label="min")
-plt.plot(sizes, subset_ratios[:,1], label="avg")
-plt.plot(sizes, subset_ratios[:,2], label="max")
+    ratios.append([temp.min(), temp.mean(), temp.max()])
+ratios = np.array(ratios)
+plt.plot(sizes, ratios[:,0], label="min")
+plt.plot(sizes, ratios[:,1], label="avg")
+plt.plot(sizes, ratios[:,2], label="max")
 plt.xlabel("n")
 plt.ylabel("Ratio")
 plt.legend()
 plt.savefig("./Subset")
 plt.close()
-
 
 # 3-1-b
 A_union = [0, 1, 4, 5, 8, 9, 10]
@@ -401,12 +396,11 @@ def UnionNon(A, B):
 
 def Union(A, B):
     for b in B:
-        pos = bisect_left(A, b)
-        if pos >= len(A) or A[pos] != b:
-            A.insert(pos, b)
-    return A
+        if b not in A:
+            A.append(b)
+    return sorted(A)
 
-union_ratios = []
+ratios = []
 for n in sizes:
     temp = []
     for _ in range(1000):
@@ -420,11 +414,11 @@ for n in sizes:
         t2 = time.perf_counter() - start
         temp.append(t1/t2 if t2 != 0 else 0)
     temp = np.array(temp)
-    union_ratios.append([temp.min(), temp.mean(), temp.max()])
-union_ratios = np.array(union_ratios)
-plt.plot(sizes, union_ratios[:,0], label="min")
-plt.plot(sizes, union_ratios[:,1], label="avg")
-plt.plot(sizes, union_ratios[:,2], label="max")
+    ratios.append([temp.min(), temp.mean(), temp.max()])
+ratios = np.array(ratios)
+plt.plot(sizes, ratios[:,0], label="min")
+plt.plot(sizes, ratios[:,1], label="avg")
+plt.plot(sizes, ratios[:,2], label="max")
 plt.xlabel("n")
 plt.ylabel("Ratio")
 plt.legend()
@@ -447,16 +441,9 @@ def IntersectNon(A, B):
     return ret
 
 def Intersect(A, B):
-    i = 0
-    while i < len(A):
-        pos = bisect_left(B, A[i])
-        if pos >= len(B) or B[pos] != A[i]:
-            A.pop(i)
-        else:
-            i += 1
-    return A
+    return [a for a in A if a in B]
 
-intersect_ratios = []
+ratios = []
 for n in sizes:
     temp = []
     for _ in range(1000):
@@ -470,11 +457,11 @@ for n in sizes:
         t2 = time.perf_counter() - start
         temp.append(t1/t2 if t2 != 0 else 0)
     temp = np.array(temp)
-    intersect_ratios.append([temp.min(), temp.mean(), temp.max()])
-intersect_ratios = np.array(intersect_ratios)
-plt.plot(sizes, intersect_ratios[:,0], label="min")
-plt.plot(sizes, intersect_ratios[:,1], label="avg")
-plt.plot(sizes, intersect_ratios[:,2], label="max")
+    ratios.append([temp.min(), temp.mean(), temp.max()])
+ratios = np.array(ratios)
+plt.plot(sizes, ratios[:,0], label="min")
+plt.plot(sizes, ratios[:,1], label="avg")
+plt.plot(sizes, ratios[:,2], label="max")
 plt.xlabel("n")
 plt.ylabel("Ratio")
 plt.legend()
