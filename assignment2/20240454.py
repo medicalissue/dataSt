@@ -23,7 +23,7 @@ for _ in range(1000):
     LT.append(time.perf_counter() - start)
     
     start = time.perf_counter()
-    arr = np.delete(arr, np.s_[:])
+    arr = np.delete(arr, np.arange(len(arr)))
     AT.append(time.perf_counter() - start)
     
 plt.figure()

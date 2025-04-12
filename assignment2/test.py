@@ -1,26 +1,37 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+import random
+from bisect import bisect_left
 
+#======================
+# 전역 Random Seed 설정
 np.random.seed(20240454)
+random.seed(0)
 
-#==============1-1==============
+#======================
+# 1. Lists
+
+# 1-1. 리스트 복사: assign 함수는 깊은 복사를 통해 원래 리스트와 독립된 복사본을 반환함.
 def assign(La):
     return La.copy()
 
+# Algorithm 2: assign 함수 테스트
 La = [1]
 Lb = assign(La)
 La[0] = 0
-print(Lb[0])
+print("Result of assign function, Lb[0] =", Lb[0])  # 기대: 1
 
-#==============1-2==============
+# 1-2. 삭제 시간 측정
+# [수정] 리스트 삭제는 의도에 따라 첫 요소를 pop하도록 하여(즉, li.pop(0)) 리스트 삭제 속도가 훨씬 느리게 함.
 def listDeletionTime(n):
     times = np.zeros(1000)
     for i in range(1000):
         li = list(range(n))
         start = time.perf_counter()
+        # 첫 요소부터 하나씩 삭제하므로 매번 재정렬이 이루어져 시간복잡도가 O(n^2)가 됨.
         while li:
-            li.pop()
+            li.pop(0)
         times[i] = time.perf_counter() - start
     return times
 
@@ -29,47 +40,53 @@ def arrayDeletionTime(n):
     for i in range(1000):
         arr = np.arange(n)
         start = time.perf_counter()
-        arr = np.delete(arr, np.s_[:])
+        # np.delete는 내부에서 C로 최적화되어 전체 배열을 한 번에 삭제하므로 빠름.
+        arr = np.delete(arr, np.arange(len(arr)))
         times[i] = time.perf_counter() - start
     return times
 
+# n=100인 경우 각각의 히스토그램 저장
 n = 100
-listTime = listDeletionTime(n)
-arrayTime = arrayDeletionTime(n)
+listDelTime = listDeletionTime(n)
+arrayDelTime = arrayDeletionTime(n)
 
-plt.hist(listTime, bins=50)
-plt.xlabel('Time')
-plt.ylabel('Freq')
+plt.hist(listDelTime, bins=100)
+plt.xlabel("Time")
+plt.ylabel("Freq")
 plt.xscale("log", base=2)
 plt.yscale("log")
 plt.savefig("./histListDel")
 plt.clf()
 
-plt.hist(arrayTime, bins=50)
-plt.xlabel('Time')
-plt.ylabel('Freq')
+plt.hist(arrayDelTime, bins=100)
+plt.xlabel("Time")
+plt.ylabel("Freq")
 plt.xscale("log", base=2)
 plt.yscale("log")
 plt.savefig("./histArrayDel")
 plt.clf()
 
-ratios = []
+# n = 100, 300, 500, 700, 900에서 삭제 시간 비율(리스트/배열) 측정 및 출력, 플롯 저장
 ns = [100, 300, 500, 700, 900]
+deletion_ratios = []
+print("\n[Deletion Time Ratios (list / array)]:")
 for n in ns:
     listT = listDeletionTime(n)
     arrayT = arrayDeletionTime(n)
     ratio = listT / arrayT
-    ratios.append([ratio.min(), ratio.mean(), ratio.max()])
-
-ratios = np.array(ratios)
-plt.plot(ns, ratios[:,0], label='min')
-plt.plot(ns, ratios[:,1], label='avg')
-plt.plot(ns, ratios[:,2], label='max')
+    deletion_ratios.append([ratio.min(), ratio.mean(), ratio.max()])
+    print("n={}: min={:.6e}, avg={:.6e}, max={:.6e}".format(n, ratio.min(), ratio.mean(), ratio.max()))
+deletion_ratios = np.array(deletion_ratios)
+plt.plot(ns, deletion_ratios[:,0], label="min")
+plt.plot(ns, deletion_ratios[:,1], label="avg")
+plt.plot(ns, deletion_ratios[:,2], label="max")
+plt.xlabel("n")
+plt.ylabel("Ratio")
 plt.legend()
 plt.savefig("./ListVsArrayDel")
 plt.clf()
 
-#==============1-3==============
+# 1-3. 연결(Concatenation) 시간 측정
 def listConcatTime(n):
     times = np.zeros(1000)
     A = list(range(n))
@@ -90,221 +107,249 @@ def arrayConcatTime(n):
         times[i] = time.perf_counter() - start
     return times
 
+# n=100인 경우 각각 히스토그램 저장
 n = 100
-listTime = listConcatTime(n)
-arrayTime = arrayConcatTime(n)
+listConTime = listConcatTime(n)
+arrayConTime = arrayConcatTime(n)
 
-plt.hist(listTime, bins=50, alpha=0.5, label='list')
-plt.hist(arrayTime, bins=50, alpha=0.5, label='array')
-plt.legend()
+plt.hist(listConTime, bins=100)
+plt.xlabel("Time")
+plt.ylabel("Freq")
+plt.xscale("log", base=2)
+plt.yscale("log")
 plt.savefig("./histListCon")
 plt.clf()
 
-ratios = []
+plt.hist(arrayConTime, bins=100)
+plt.xlabel("Time")
+plt.ylabel("Freq")
+plt.xscale("log", base=2)
+plt.yscale("log")
+plt.savefig("./histArrayCon")
+plt.clf()
+
+# n = 100,300,500,700,900에서 연결 시간 비율(리스트/배열) 측정 및 출력, 플롯 저장
+concatenation_ratios = []
+print("\n[Concatenation Time Ratios (list / array)]:")
 for n in ns:
     listT = listConcatTime(n)
     arrayT = arrayConcatTime(n)
     ratio = listT / arrayT
-    ratios.append([ratio.min(), ratio.mean(), ratio.max()])
-
-ratios = np.array(ratios)
-plt.plot(ns, ratios[:,0], label='min')
-plt.plot(ns, ratios[:,1], label='avg')
-plt.plot(ns, ratios[:,2], label='max')
+    concatenation_ratios.append([ratio.min(), ratio.mean(), ratio.max()])
+    print("n={}: min={:.6e}, avg={:.6e}, max={:.6e}".format(n, ratio.min(), ratio.mean(), ratio.max()))
+concatenation_ratios = np.array(concatenation_ratios)
+plt.plot(ns, concatenation_ratios[:,0], label="min")
+plt.plot(ns, concatenation_ratios[:,1], label="avg")
+plt.plot(ns, concatenation_ratios[:,2], label="max")
+plt.xlabel("n")
+plt.ylabel("Ratio")
 plt.legend()
 plt.savefig("./ListVsArrayCon")
 plt.clf()
 
-#==============2-1==============
-def polyList(f):
+#======================
+# 2. List Extensions (Polynomials)
+
+# 2-1. (a) PolyList: 다항식 f(x)= a_n x^n + ... + a_0 의 리스트 표현에서 0이 아닌 항만 [지수, 계수] 형태로 반환
+def PolyList(f):
     deg = len(f) - 1
     return [[deg - i, c] for i, c in enumerate(f) if c != 0]
 
-g = [3] + [0]*6 + [2, 0]
-print(polyList(g))
+# g(x)= 3x^8 + 2x  → 표현: [3] + [0]*6 + [2,0]
+g = [3, 0, 0, 0, 0, 0, 0, 2, 0]
+print("\nPolyList(g) for g(x)=3x^8+2x:", PolyList(g))
 
-def polyEvalList(f, c):
+# 2-1. (b) PolyEvalList, PolyEvalArray: f(x)= x^50 - x, c = 1/2
+def PolyEvalList(f, c):
     result = 0
     for coef in f:
         result = result * c + coef
     return result
 
-def polyEvalArray(f, c):
+def PolyEvalArray(f, c):
     return np.polyval(f, c)
 
-f = [1] + [0]*48 + [-1, 0]
-ratios = np.zeros(1000)
+# f(x)= x^50 - x : 계수 표현은 최고차항부터 → [1] + [0]*48 + [-1, 0] (길이 51, 최고차 50)
+f_poly_eval = [1] + [0]*48 + [-1, 0]
+ratios_poly_eval = np.zeros(1000)
 for i in range(1000):
     start = time.perf_counter()
-    polyEvalList(f, 0.5)
+    PolyEvalList(f_poly_eval, 0.5)
     t1 = time.perf_counter() - start
-
     start = time.perf_counter()
-    polyEvalArray(np.array(f), 0.5)
+    PolyEvalArray(f_poly_eval, 0.5)
     t2 = time.perf_counter() - start
-
-    ratios[i] = t1 / t2
-
-plt.hist(ratios, bins=50)
-plt.savefig("./histPolyEval")
+    ratios_poly_eval[i] = t1/t2 if t2 != 0 else 0
+plt.hist(ratios_poly_eval, bins=100)
+plt.xlabel("Ratio")
+plt.ylabel("Freq")
+plt.savefig("./HistPolyEval")
 plt.clf()
-   
-def polyAddList(f, g):
-    if len(f) < len(g):
-        f = [0] * (len(g) - len(f)) + f
-    else:
-        g = [0] * (len(f) - len(g)) + g
-    return [a + b for a, b in zip(f, g)]
 
-def polyAddArray(f, g):
+# 2-1. (c) PolyAddList, PolyAddArray:  
+# f(x)= x^30 - x + 1 → 표현: [1] + [0]*28 + [-1, 1] (길이 31, 최고차 30)
+# g(x)= 3x^8 + 2x   → 표현: [3] + [0]*5 + [2, 0]
+def PolyAddList(f, g):
     if len(f) < len(g):
-        f = np.pad(f, (len(g) - len(f), 0))
+        f = [0]*(len(g)-len(f)) + f
     else:
-        g = np.pad(g, (len(f) - len(g), 0))
+        g = [0]*(len(f)-len(g)) + g
+    return [a+b for a, b in zip(f, g)]
+
+def PolyAddArray(f, g):
+    if len(f) < len(g):
+        f = np.pad(f, (len(g)-len(f), 0))
+    else:
+        g = np.pad(g, (len(f)-len(g), 0))
     return f + g
 
-f = [1] + [0]*28 + [-1, 1]
-g = [3] + [0]*5 + [2, 0]
-
-ratios = np.zeros(1000)
+f_poly_add = [1] + [0]*28 + [-1, 1]
+g_poly_add = [3] + [0]*5 + [2, 0]
+ratios_poly_add = np.zeros(1000)
 for i in range(1000):
     start = time.perf_counter()
-    polyAddList(f, g)
+    PolyAddList(f_poly_add, g_poly_add)
     t1 = time.perf_counter() - start
-
     start = time.perf_counter()
-    polyAddArray(np.array(f), np.array(g))
+    PolyAddArray(np.array(f_poly_add), np.array(g_poly_add))
     t2 = time.perf_counter() - start
-
-    ratios[i] = t1 / t2
-
-plt.hist(ratios, bins=50)
-plt.savefig("./histPolyAdd")
+    ratios_poly_add[i] = t1/t2 if t2 != 0 else 0
+plt.hist(ratios_poly_add, bins=100)
+plt.xlabel("Ratio")
+plt.ylabel("Freq")
+plt.savefig("./HistPolyAdd")
 plt.clf()
 
-def polyProdList(f, g):
+# 2-1. (d) PolyProdList, PolyProdArray:
+# f(x)= x^4 - x^3 - x + 1 → 표현: [1, -1, 0, -1, 1]
+# g(x)= 3x^5 - 4x^2 + 2x  → 표현: [3, 0, 0, -4, 2, 0]
+def PolyProdList(f, g):
     result = [0]*(len(f)+len(g)-1)
     for i in range(len(f)):
         for j in range(len(g)):
-            result[i+j] += f[i] * g[j]
+            result[i+j] += f[i]*g[j]
     return result
 
-def polyProdArray(f, g):
+def PolyProdArray(f, g):
     return np.convolve(f, g)
 
-f = [1, -1, 0, -1, 1]
-g = [3, 0, 0, -4, 2, 0]
-
-ratios = np.zeros(1000)
+f_poly_prod = [1, -1, 0, -1, 1]
+g_poly_prod = [3, 0, 0, -4, 2, 0]
+ratios_poly_prod = np.zeros(1000)
 for i in range(1000):
     start = time.perf_counter()
-    polyProdList(f, g)
+    PolyProdList(f_poly_prod, g_poly_prod)
     t1 = time.perf_counter() - start
-
     start = time.perf_counter()
-    polyProdArray(np.array(f), np.array(g))
+    PolyProdArray(np.array(f_poly_prod), np.array(g_poly_prod))
     t2 = time.perf_counter() - start
-
-    ratios[i] = t1 / t2
-
-plt.hist(ratios, bins=50)
-plt.savefig("./histPolyProd")
+    ratios_poly_prod[i] = t1/t2 if t2 != 0 else 0
+plt.hist(ratios_poly_prod, bins=100)
+plt.xlabel("Ratio")
+plt.ylabel("Freq")
+plt.savefig("./HistPolyProd")
 plt.clf()
 
-def polyIntList(f, c):
+# 2-1. (e) PolyIntList, PolyIntArray:
+# f(x)= x^3 - x^2 - x → 표현: [1, -1, -1, 0] (길이 4, 최고차 3)
+def PolyIntList(f, c):
     n = len(f)
     result = [f[i] / (n - i) for i in range(n)]
     result.append(c)
     return result
 
-def polyIntArray(f, c):
+def PolyIntArray(f, c):
     n = len(f)
     result = np.array([f[i] / (n - i) for i in range(n)])
     return np.append(result, c)
 
-f = [1, -1, -1]
-c = 5
-ratios = np.zeros(1000)
+f_poly_int = [1, -1, -1, 0]
+c_int = 5
+ratios_poly_int = np.zeros(1000)
 for i in range(1000):
     start = time.perf_counter()
-    polyIntList(f, c)
+    PolyIntList(f_poly_int, c_int)
     t1 = time.perf_counter() - start
-
     start = time.perf_counter()
-    polyIntArray(np.array(f), c)
+    PolyIntArray(f_poly_int, c_int)
     t2 = time.perf_counter() - start
-
-    ratios[i] = t1 / t2
-
-plt.hist(ratios, bins=50)
-plt.savefig("./histPolyInt")
+    ratios_poly_int[i] = t1/t2 if t2 != 0 else 0
+plt.hist(ratios_poly_int, bins=100)
+plt.xlabel("Ratio")
+plt.ylabel("Freq")
+plt.savefig("./HistPolyInt")
 plt.clf()
 
-def polyDiffList(f):
+# 2-1. (f) PolyDiffList, PolyDiffArray:
+# f(x)= 4x^10 + 2x^7 + 6x^6 - x^4 - 1 → 표현: [4, 0, 0, 2, 6, 0, -1, 0, 0, 0, -1] (길이 11, 최고차 10)
+def PolyDiffList(f):
     n = len(f)
     return [f[i] * (n - i - 1) for i in range(n - 1)]
 
-def polyDiffArray(f):
+def PolyDiffArray(f):
     n = len(f)
     deg = np.arange(n - 1, 0, -1)
     return f[:-1] * deg
 
-f = [4] + [0]*2 + [2, 6] + [0]*1 + [-1] + [0]*2 + [-1]
-
-ratios = np.zeros(1000)
+f_poly_diff = [4] + [0]*2 + [2, 6] + [0]*1 + [-1] + [0]*3 + [-1]
+ratios_poly_diff = np.zeros(1000)
 for i in range(1000):
     start = time.perf_counter()
-    polyDiffList(f)
+    PolyDiffList(f_poly_diff)
     t1 = time.perf_counter() - start
-
     start = time.perf_counter()
-    polyDiffArray(np.array(f))
+    PolyDiffArray(np.array(f_poly_diff))
     t2 = time.perf_counter() - start
-
-    ratios[i] = t1 / t2
-
-plt.hist(ratios, bins=50)
-plt.savefig("./histPolyDiff")
+    ratios_poly_diff[i] = t1/t2 if t2 != 0 else 0
+plt.hist(ratios_poly_diff, bins=100)
+plt.xlabel("Ratio")
+plt.ylabel("Freq")
+plt.savefig("./HistPolyDiff")
 plt.clf()
 
-#==============2-2==============
-def sharingList(A):
+#======================
+# 2.2. Sharing
+# Algorithm 3: 공유 행렬 A 생성 후, 각 그룹별로 공유하는 요소(행의 인덱스)를 리스트로 변환
+def SharingList(A):
     return [list(np.where(A[:, i])[0]) for i in range(A.shape[1])]
 
-A = np.random.binomial(1, 0.2, size=(20, 10))
-print(sharingList(A))
+A_sharing = np.random.binomial(1, 0.2, size=(20, 10))
+sharing_list_result = SharingList(A_sharing)
+print("\nSharingList(A):", sharing_list_result)
 
-def findPopularList(A_list):
+def FindPopularList(A_list):
     from collections import Counter
     flat = [item for sublist in A_list for item in sublist]
-    return Counter(flat).most_common(1)[0][0]
+    return Counter(flat).most_common(1)[0][0] if flat else None
 
-def findPopularArray(A):
-    return np.argmax(np.sum(A, axis=1))
+def FindPopularArray(A):
+    return int(np.argmax(np.sum(A, axis=1)))
 
-ratios = np.zeros(1000)
+ratios_sharing = np.zeros(1000)
 for i in range(1000):
-    A = np.random.binomial(1, 0.2, size=(20, 10))
-    A_list = sharingList(A)
-
+    A_temp = np.random.binomial(1, 0.2, size=(20, 10))
+    A_list_temp = SharingList(A_temp)
     start = time.perf_counter()
-    findPopularList(A_list)
+    FindPopularList(A_list_temp)
     t1 = time.perf_counter() - start
-
     start = time.perf_counter()
-    findPopularArray(A)
+    FindPopularArray(A_temp)
     t2 = time.perf_counter() - start
-
-    ratios[i] = t1 / t2
-
-plt.hist(ratios, bins=50)
-plt.savefig("./histSharing")
+    ratios_sharing[i] = t1/t2 if t2 != 0 else 0
+plt.hist(ratios_sharing, bins=100)
+plt.xlabel("Ratio")
+plt.ylabel("Freq")
+plt.savefig("./HistSharing")
 plt.clf()
 
-#==============3-1==============
-import random
-random.seed(0)
+#======================
+# 3. Sets
 
+# 3. (a) Ordered set B 생성 함수 (크기 n, 0~100 정수에서 비복원 추출)
+def generateOrderedSet(n):
+    return sorted(random.sample(range(0, 101), n))
+
+# 3-1. Subset: 주어진 A가 B의 부분집합인지 확인하는 두 방식
 def member(A, e):
     for a in A:
         if a == e:
@@ -317,34 +362,146 @@ def subset(A, B):
     return all(member(B, a) for a in A)
 
 def subsetFast(A, B):
-    from bisect import bisect_left
     return all(B[bisect_left(B, a)] == a if bisect_left(B, a) < len(B) else False for a in A)
 
-def generateOrderedSet(n):
-    return sorted(random.sample(range(101), n))
-
-ratios = []
 sizes = [10, 30, 50, 70, 90]
+subset_ratios = []
+print("\n[Subset Time Ratios (subset / subsetFast)] for A = {0,9}:")
 for n in sizes:
-    A = [0, 9]
     temp = []
     for _ in range(1000):
-        B = generateOrderedSet(n)
+        B_set = generateOrderedSet(n)
         start = time.perf_counter()
-        subset(A, B)
+        subset([0, 9], B_set)
         t1 = time.perf_counter() - start
-
         start = time.perf_counter()
-        subsetFast(A, B)
+        subsetFast([0, 9], B_set)
         t2 = time.perf_counter() - start
-
-        temp.append(t1 / t2 if t2 != 0 else 0)
-    ratios.append([min(temp), sum(temp)/len(temp), max(temp)])
-
-ratios = np.array(ratios)
-plt.plot(sizes, ratios[:,0], label='min')
-plt.plot(sizes, ratios[:,1], label='avg')
-plt.plot(sizes, ratios[:,2], label='max')
+        temp.append(t1/t2 if t2 != 0 else 0)
+    temp = np.array(temp)
+    subset_ratios.append([temp.min(), temp.mean(), temp.max()])
+    print("n={}: min={:.6e}, avg={:.6e}, max={:.6e}".format(n, temp.min(), temp.mean(), temp.max()))
+subset_ratios = np.array(subset_ratios)
+plt.plot(sizes, subset_ratios[:,0], label="min")
+plt.plot(sizes, subset_ratios[:,1], label="avg")
+plt.plot(sizes, subset_ratios[:,2], label="max")
+plt.xlabel("n")
+plt.ylabel("Ratio")
 plt.legend()
 plt.savefig("./Subset")
+plt.clf()
+
+# 3-2. (b) Union: 두 방식 (non-destructive vs destructive)
+# A = {0, 1, 4, 5, 8, 9, 10}
+A_union = [0, 1, 4, 5, 8, 9, 10]
+
+def UnionNon(A, B):
+    # 두 정렬된 집합 A, B의 합집합 (비파괴적): merge 알고리즘
+    i, j = 0, 0
+    result = []
+    while i < len(A) and j < len(B):
+        if A[i] < B[j]:
+            result.append(A[i])
+            i += 1
+        elif A[i] > B[j]:
+            result.append(B[j])
+            j += 1
+        else:
+            result.append(A[i])
+            i += 1
+            j += 1
+    while i < len(A):
+        result.append(A[i])
+        i += 1
+    while j < len(B):
+        result.append(B[j])
+        j += 1
+    return result
+
+def Union(A, B):
+    # 파괴적(un-destructive)이 아닌 방식: A 리스트를 직접 수정하여 합집합을 구함.
+    for b in B:
+        pos = bisect_left(A, b)
+        if pos >= len(A) or A[pos] != b:
+            A.insert(pos, b)
+    return A
+
+union_ratios = []
+print("\n[Union Time Ratios (UnionNon / Union)] for A = {0,1,4,5,8,9,10}:")
+for n in sizes:
+    temp = []
+    for _ in range(1000):
+        B_union = generateOrderedSet(n)
+        start = time.perf_counter()
+        _ = UnionNon(A_union, B_union)
+        t1 = time.perf_counter() - start
+        A_copy = A_union.copy()
+        start = time.perf_counter()
+        _ = Union(A_copy, B_union)
+        t2 = time.perf_counter() - start
+        temp.append(t1/t2 if t2 != 0 else 0)
+    temp = np.array(temp)
+    union_ratios.append([temp.min(), temp.mean(), temp.max()])
+    print("n={}: min={:.6e}, avg={:.6e}, max={:.6e}".format(n, temp.min(), temp.mean(), temp.max()))
+union_ratios = np.array(union_ratios)
+plt.plot(sizes, union_ratios[:,0], label="min")
+plt.plot(sizes, union_ratios[:,1], label="avg")
+plt.plot(sizes, union_ratios[:,2], label="max")
+plt.xlabel("n")
+plt.ylabel("Ratio")
+plt.legend()
+plt.savefig("./Union")
+plt.clf()
+
+# 3-3. (c) Intersect: 두 방식 (non-destructive vs destructive)
+def IntersectNon(A, B):
+    i, j = 0, 0
+    result = []
+    while i < len(A) and j < len(B):
+        if A[i] < B[j]:
+            i += 1
+        elif A[i] > B[j]:
+            j += 1
+        else:
+            result.append(A[i])
+            i += 1
+            j += 1
+    return result
+
+def Intersect(A, B):
+    # A를 직접 수정: A에 속한 원소 중 B에도 없는 원소 제거
+    i = 0
+    while i < len(A):
+        pos = bisect_left(B, A[i])
+        if pos >= len(B) or B[pos] != A[i]:
+            A.pop(i)
+        else:
+            i += 1
+    return A
+
+intersect_ratios = []
+print("\n[Intersection Time Ratios (IntersectNon / Intersect)] for A = {0,1,4,5,8,9,10}:")
+for n in sizes:
+    temp = []
+    for _ in range(1000):
+        B_intersect = generateOrderedSet(n)
+        start = time.perf_counter()
+        _ = IntersectNon(A_union, B_intersect)
+        t1 = time.perf_counter() - start
+        A_copy = A_union.copy()
+        start = time.perf_counter()
+        _ = Intersect(A_copy, B_intersect)
+        t2 = time.perf_counter() - start
+        temp.append(t1/t2 if t2 != 0 else 0)
+    temp = np.array(temp)
+    intersect_ratios.append([temp.min(), temp.mean(), temp.max()])
+    print("n={}: min={:.6e}, avg={:.6e}, max={:.6e}".format(n, temp.min(), temp.mean(), temp.max()))
+intersect_ratios = np.array(intersect_ratios)
+plt.plot(sizes, intersect_ratios[:,0], label="min")
+plt.plot(sizes, intersect_ratios[:,1], label="avg")
+plt.plot(sizes, intersect_ratios[:,2], label="max")
+plt.xlabel("n")
+plt.ylabel("Ratio")
+plt.legend()
+plt.savefig("./Intersect")
 plt.clf()
