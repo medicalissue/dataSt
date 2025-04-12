@@ -78,7 +78,7 @@ def listConcatTime(n):
     B = list(range(n))
     for i in range(1000):
         start = time.perf_counter()
-        _ = A + B
+        A + B
         times[i] = time.perf_counter() - start
     return times
 
@@ -88,7 +88,7 @@ def arrayConcatTime(n):
     B = np.arange(n)
     for i in range(1000):
         start = time.perf_counter()
-        _ = np.concatenate((A, B))
+        np.concatenate((A, B))
         times[i] = time.perf_counter() - start
     return times
 
@@ -302,9 +302,13 @@ print(f"SharingList(A) = {SharingList(A)}")
 
 # 2-2-b
 def FindPopularList(A_list):
-    from collections import Counter
-    flat = [item for sublist in A_list for item in sublist]
-    return Counter(flat).most_common(1)[0][0] if flat else None
+    freq = {}
+    for sublist in A_list:
+        for item in sublist:
+            freq[item] = freq.get(item, 0) + 1
+
+    return max(freq, key=freq.get)
+
 
 def FindPopularArray(A):
     return int(np.argmax(np.sum(A, axis=1)))
@@ -313,13 +317,16 @@ ratios = np.zeros(1000)
 for i in range(1000):
     A_temp = np.random.binomial(1, 0.2, size=(20, 10))
     A_list_temp = SharingList(A_temp)
+    
     start = time.perf_counter()
     FindPopularList(A_list_temp)
     t1 = time.perf_counter() - start
+    
     start = time.perf_counter()
     FindPopularArray(A_temp)
     t2 = time.perf_counter() - start
-    ratios[i] = t1 / t2 if t2 != 0 else 0
+    
+    ratios[i] = t1 / t2
 plt.hist(ratios, bins=100)
 plt.xlabel("Ratio")
 plt.ylabel("Freq")
@@ -330,19 +337,46 @@ plt.close()
 def generateOrderedSet(n):
     return np.sort(np.random.randint(0, 101, n))
 
-def member(A, e):
-    for a in A:
-        if a == e:
-            return True
-        if a > e:
+def Member(A, e):
+    if not A:
+        return False
+    p = 0
+    while True:
+        a = A[p]
+        if a < e:
+            if p == len(A) - 1:
+                return False
+            else:
+                p += 1
+        elif a > e:
             return False
-    return False
+        else:
+            return True
 
-def subset(A, B):
-    return all(a in B for a in A)
+def Subset(A, B):
+    if not A:
+        return True
+    p = 0
+    while True:
+        if Member(B, A[p]):
+            if p == len(A) - 1:
+                return True
+            else:
+                p += 1
+        else:
+            return False
 
-def subsetFast(A, B):
-    return all(a in B for a in A)
+def SubsetFast(A, B):
+    i = j = 0
+    while i < len(A) and j < len(B):
+        if A[i] < B[j]:
+            return False
+        elif A[i] > B[j]:
+            j += 1
+        else:
+            i += 1
+            j += 1
+    return i == len(A)
 
 sizes = [10, 30, 50, 70, 90]
 ratios = []
@@ -351,12 +385,12 @@ for n in sizes:
     for _ in range(1000):
         B_set = generateOrderedSet(n)
         start = time.perf_counter()
-        subset([0, 9], B_set)
+        Subset([0, 9], B_set)
         t1 = time.perf_counter() - start
         start = time.perf_counter()
-        subsetFast([0, 9], B_set)
+        SubsetFast([0, 9], B_set)
         t2 = time.perf_counter() - start
-        temp.append(t1/t2 if t2 != 0 else 0)
+        temp.append(t1 / t2)
     temp = np.array(temp)
     ratios.append([temp.min(), temp.mean(), temp.max()])
 ratios = np.array(ratios)
@@ -406,13 +440,13 @@ for n in sizes:
     for _ in range(1000):
         B_union = generateOrderedSet(n)
         start = time.perf_counter()
-        _ = UnionNon(A_union, B_union)
+        UnionNon(A_union, B_union)
         t1 = time.perf_counter() - start
         A_copy = A_union.copy()
         start = time.perf_counter()
-        _ = Union(A_copy, B_union)
+        Union(A_copy, B_union)
         t2 = time.perf_counter() - start
-        temp.append(t1/t2 if t2 != 0 else 0)
+        temp.append(t1 / t2)
     temp = np.array(temp)
     ratios.append([temp.min(), temp.mean(), temp.max()])
 ratios = np.array(ratios)
@@ -449,13 +483,13 @@ for n in sizes:
     for _ in range(1000):
         B_intersect = generateOrderedSet(n)
         start = time.perf_counter()
-        _ = IntersectNon(A_union, B_intersect)
+        IntersectNon(A_union, B_intersect)
         t1 = time.perf_counter() - start
         A_copy = A_union.copy()
         start = time.perf_counter()
-        _ = Intersect(A_copy, B_intersect)
+        Intersect(A_copy, B_intersect)
         t2 = time.perf_counter() - start
-        temp.append(t1/t2 if t2 != 0 else 0)
+        temp.append(t1 / t2)
     temp = np.array(temp)
     ratios.append([temp.min(), temp.mean(), temp.max()])
 ratios = np.array(ratios)
