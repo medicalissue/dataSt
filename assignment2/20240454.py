@@ -82,3 +82,45 @@ plt.savefig("./ListVsArrayDel")
 
 plt.clf()
 
+#==============2-1==============
+def PolyList(f):
+    fRev = f[::-1]
+    ans = [[i, fRev[i]] for i in range(len(fRev)) if fRev[i] != 0][::-1]
+    return ans
+
+def PolyArray(f):
+    fRev = f[::-1]
+    ans = np.array([[i, fRev[i]] for i in range(len(fRev)) if fRev[i] != 0][::-1])
+    return ans
+
+def PolyEvalList(f,c):
+    ans = 0
+    for i in f:
+        ans += i[1] * (c ** i[0])
+    return ans
+
+def PolyEvalArray(f,c):
+    ans = 0
+    for i in f:
+        ans += i[1] * (c ** i[0])
+    return ans
+
+pel = np.zeros(1000)
+pea = np.zeros(1000)
+for i in range(1000):
+    start = time.perf_counter()
+    PolyEvalList([[50, 1], [1, -1]], 1 / 2)
+    pel[i] = time.perf_counter() - start
+    
+    start = time.perf_counter()
+    PolyEvalArray(np.array([[50, 1], [1, -1]]), 1 / 2)
+    pea[i] = time.perf_counter() - start
+    
+plt.figure()
+plt.hist(pel / pea, bins=500)
+plt.xlabel('Time')
+plt.ylabel('Freq')
+plt.xscale("log", base=2)
+plt.yscale("log")
+plt.savefig('./HistPolyEval')
+plt.clf()
