@@ -11,7 +11,7 @@ def assign(La):
 La = [1]
 Lb = assign(La)
 La[0] = 0
-print(f"Lb[0] = {Lb[0]}")
+print(Lb[0])
 
 # 1-2
 def listDeletionTime(n):
@@ -133,7 +133,7 @@ def PolyList(f):
     return [[deg - i, c] for i, c in enumerate(f) if c != 0]
 
 g = [3, 0, 0, 0, 0, 0, 0, 2, 0]
-print(f"When g(x) = 3x ^ 8 + 2x, PolyList(g) = {PolyList(g)}")
+print(PolyList(g))
 
 # 2-1-b
 def PolyEvalList(f, c):
@@ -303,7 +303,7 @@ def SharingList(A):
     return [list(map(int, np.where(A[:, i])[0])) for i in range(A.shape[1])]
 
 A = np.random.binomial(1, 0.2, size=(20, 10))
-print(f"SharingList(A) = {SharingList(A)}")
+print(SharingList(A))
 
 # 2-2-b
 def FindPopularList(A):
